@@ -113,7 +113,6 @@ func encode_Imgs_upload(root, pattern string) {
 		log.Fatal(err)
 	}
 
-	log.Printf("Test: %v", images)
 	//Parse the filepaths, encode images with approrpiate CC, write to output dir
 	for _, s := range images {
 		log.Printf("Encoding Image %v \n", s)
@@ -153,13 +152,13 @@ func encode_Imgs_upload(root, pattern string) {
 		}
 
 		msg := string(copyright) //Convert to string, just to be sure
-		log.Printf("Copyright : %v", msg)
+		log.Printf("Copyright : %v \n", msg)
 
 		file_name := filepath.Base(s)
-		outfile := dir_path_out + "/cpoyrighted-" + file_name
+		outfile := root + dir_path_out + "/cpoyrighted-" + file_name
 		//Create the output file name
 		if _, err := os.Stat(outfile); !os.IsNotExist(err) {
-			log.Printf("Encoded File exists")
+			log.Printf("Encoded File exists\n")
 		} else {
 			log.Printf("Output File: %v \n", outfile)
 			imgStegEncode(s, msg, outfile) //encode CC to current image

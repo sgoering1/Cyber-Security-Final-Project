@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <img src = "0853-Delta-5-Edit.jpg" alt= "nnnnnnnnn" width="460" height="345" >
-    </body>
+<body>
+    <?php
+    $files = scandir('Cyber-Security-Final-Project/img');
+    foreach($files as $file) {
+        if($file !== "." && $file !== "..") {
+            echo "<img src='$file' />";
+        }
+    }
+?>
+</body>
 </html>

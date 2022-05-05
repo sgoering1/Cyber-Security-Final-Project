@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <?php
-    $files = scandir('Cyber-Security-Final-Project/img');
-    foreach($files as $file) {
-        if($file !== "." && $file !== "..") {
-            echo "<img src='$file' />";
-        }
-    }
-?>
+
+<form action="upload.php" method="post" enctype="multipart/form-data">
+</form>
+
 </body>
 </html>

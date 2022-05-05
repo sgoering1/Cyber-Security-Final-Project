@@ -1,5 +1,5 @@
-module github.com/Cyber-Security-Final-Project
+module Cyber-Security-Final-Project
 
-go 1.17
+go 1.18
 
 require github.com/auyer/steganography v1.0.1

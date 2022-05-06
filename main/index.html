@@ -2,8 +2,23 @@
 <html>
 <body>
 
-<form action="upload.php" method="post" enctype="multipart/form-data">
-</form>
+<script>
+function loadImgs(x){
+    var div = document.getElementById("loadImage");
 
+    for(counter = 0; counter<=x; counter++){
+        var imgw = document.createElement("img");
+        imgw.src = "img/" + counter + ".jpg";
+        div.appendChild(imgw);
+    }
+}
+
+window.onload = function(){
+    loadImgs(11);
+}
+</script>
+<div id="loadImage-wrap">
+    <img id="loadImage" />
+</div>
 </body>
 </html>

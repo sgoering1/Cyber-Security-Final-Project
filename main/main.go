@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -42,7 +43,7 @@ const (
 	ccbyncsa_path = "/CC-BY-NC-SA.txt"
 	ccbynd_path   = "/CC-BY-ND.txt"
 	ccbysa_path   = "/CC-BY-SA.txt"
-	dir_path_out  = "/img"
+	dir_path_out  = "main/img/"
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,13 +108,14 @@ func encode_Imgs_upload(root, pattern string) {
 
 	//Get all image filepaths for encoding
 	//images, err := find_img(root, pattern)
-	p := root + "/*/*.jpg"
+	p := root + "/CC*/*.jpg"
 	images, err := filepath.Glob(p)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	//Parse the filepaths, encode images with approrpiate CC, write to output dir
+	index := 0
 	for _, s := range images {
 		log.Printf("Encoding Image %v \n", s)
 		var copyright []byte
@@ -148,22 +150,24 @@ func encode_Imgs_upload(root, pattern string) {
 				log.Fatal(err)
 			}
 		} else {
-			log.Fatal("Could not find the copyright file specified")
+			log.Printf("Could not find the copyright file specified")
 		}
 
 		msg := string(copyright) //Convert to string, just to be sure
 		log.Printf("Copyright : %v \n", msg)
 
-		file_name := filepath.Base(s)
-		outfile := root + dir_path_out + "/cpoyrighted-" + file_name
+		//file_name := filepath.Base(s)
+		i_s := strconv.Itoa(index)
+		outfile := root + dir_path_out + i_s + ".jpg"
 		//Create the output file name
+		log.Printf("Index %v", index)
 		if _, err := os.Stat(outfile); !os.IsNotExist(err) {
 			log.Printf("Encoded File exists\n")
 		} else {
 			log.Printf("Output File: %v \n", outfile)
 			imgStegEncode(s, msg, outfile) //encode CC to current image
 		}
-
+		index += 1
 	}
 }
 
@@ -176,7 +180,7 @@ func main() {
 	//log.Printf("%v", matches)
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3000"
+		port = "8887"
 	}
 
 	mux := http.NewServeMux()

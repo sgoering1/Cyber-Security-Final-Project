@@ -1,12 +1,15 @@
 package main
 
+//Image Stenography to Embed Creative Copyright information
+//Authors: Sam Goering, Colin Woods
+//Uwyo Cybersecurity-4010 2022
+
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"github.com/auyer/steganography"
 	"html/template"
-	"image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,20 +19,10 @@ import (
 	"strings"
 )
 
-/*
-TO-DO
-
-- Detect when a file is being downloaded from the website
-- Embed copy right info to file after the download request
-- Determine how much we should change image
-	- Which position of bit to we flip based on
-	  the copy right of work.
-- Get the website to work (localhost:3000)
-- Decode??
-*/
-
+//Html template variable
 var tpl = template.Must(template.ParseFiles("index.html"))
 
+//Filepath constants
 const (
 	CC_BY         = "CC-BY"
 	CC_BY_SA      = "CC-BY-SA"
@@ -46,22 +39,27 @@ const (
 	dir_path_out  = "main/img/"
 )
 
+//Sends html to webserver
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	tpl.Execute(w, nil)
 }
 
-//Not the final function just an example of how to use the library
-//Input = filepath
-//Message = message to be encoded
+// Encoding Function takes in filepath to image, message to be encoded, and the desired output
+// string, returns nothing.
+
+// Note: The encode will not work with jpegs as the encoding of a jpeg is much more specific
+// than a png images.
 func imgStegEncode(input string, message string, output string) {
+
+	//Create file readers and writer for the encoding
 	inFile, _ := os.Open(input)
 	reader := bufio.NewReader(inFile)
-	img, _ := jpeg.Decode(reader) //Needs logic for png images if we want
+	img, _ := png.Decode(reader) //Needs to be png
 	byte_msg := []byte(message)
 	buf := new(bytes.Buffer)
 
 	if uint32(len(byte_msg)) < steganography.MaxEncodeSize(img) {
-		err := steganography.Encode(buf, img, byte_msg)
+		err := steganography.Encode(buf, img, byte_msg) //Actual encoding
 		if err != nil {
 			log.Printf("Error %v", err)
 		}
@@ -77,17 +75,25 @@ func imgStegEncode(input string, message string, output string) {
 
 }
 
-func imgStegDecode(input string, output string) (msg string) {
-	inFile, _ := os.Open(input)
+//Decode function just take in a filepath and returns the
+//String of the decoded images copyright
+func imgStegDecode(input string) (msg string) {
+	inFile, err := os.Open(input)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer inFile.Close()
 
 	reader := bufio.NewReader(inFile)
-	img, _ := jpeg.Decode(reader)
+	img, err := png.Decode(reader)
 
-	size := steganography.GetMessageSizeFromImage(img)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	size := steganography.GetMessageSizeFromImage(img) //Needed for the decode to know
 
 	dec_msg := steganography.Decode(size, img)
-	fmt.Printf("Decoded message: %v", string(dec_msg))
 	return string(dec_msg)
 }
 
@@ -108,7 +114,7 @@ func encode_Imgs_upload(root, pattern string) {
 
 	//Get all image filepaths for encoding
 	//images, err := find_img(root, pattern)
-	p := root + "/CC*/*.jpg"
+	p := root + "/CC*/*.png"
 	images, err := filepath.Glob(p)
 	if err != nil {
 		log.Fatal(err)
@@ -158,7 +164,7 @@ func encode_Imgs_upload(root, pattern string) {
 
 		//file_name := filepath.Base(s)
 		i_s := strconv.Itoa(index)
-		outfile := root + dir_path_out + i_s + ".jpg"
+		outfile := root + dir_path_out + i_s + ".png"
 		//Create the output file name
 		log.Printf("Index %v", index)
 		if _, err := os.Stat(outfile); !os.IsNotExist(err) {
@@ -172,12 +178,19 @@ func encode_Imgs_upload(root, pattern string) {
 }
 
 func main() {
-	//log.Printf("Please input user go root (i.e. C:/username/go/src/)") //For the future we want this to just be a filepath
 	args := os.Args
 
-	root := args[1] + "/Cyber-Security-Final-Project/"
-	encode_Imgs_upload(root, "*.jpg")
-	//log.Printf("%v", matches)
+	//Simple CLI handling just 2 commands -d and -e
+	if args[1] == "-d" {
+		log.Printf(args[2])
+		cc_msg := imgStegDecode(args[2])
+		log.Printf("Cpoyright Message: %v", cc_msg)
+		os.Exit(3)
+	} else if args[1] == "-e" { //This has to be C:/user/go/src/
+		root := args[2] + "/Cyber-Security-Final-Project/"
+		encode_Imgs_upload(root, "*.png")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8887"
